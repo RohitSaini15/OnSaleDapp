@@ -1,0 +1,79 @@
+.nft-market {
+    background-color:#343434;
+    padding: 20px;
+    font-family: 'Roboto', sans-serif;
+    margin-top: 150px;
+  }
+  
+  .nft-market-title {
+    color: #333;
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+  
+  .nft-market-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 50px;
+  }
+  
+  .nft-item {
+    position: relative;
+    overflow: hidden;
+    background-color: #403f3f;
+    border-radius: 20px;
+    height: 650px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .nft-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .nft-item-image {
+    width: 100%;
+    height: 80%;
+    object-fit: cover;
+  }
+  
+  .nft-item-name {
+
+    margin-top: 10px;
+    margin-left: 15px;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .nft-item-description {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .nft-item-price {
+    margin-left: 15px;
+    color: #b5aec4;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .nft-item-button {
+    margin-left: 15px;
+    background-color: rgb(32, 129, 226);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-left: 10px;
+  }
+  
+  .nft-item-button:hover {
+    background-color: #e64444;
+  }

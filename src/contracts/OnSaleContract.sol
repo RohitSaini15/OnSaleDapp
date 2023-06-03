@@ -1,37 +1,24 @@
-pragma solidity >=0.4.22 <0.9.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.4;
 pragma experimental ABIEncoderV2;
 
 contract OnSale {
 
-
     uint public itemCount = 0;
     uint public oredrCount;
+    address payable owner;
 
     mapping(uint => userItem) public items;
-    mapping(address => mapping(uint => sellerData) ) pendingAmount;
-    mapping(address => productInfo[]) products;
+    mapping(address => mapping(uint => uint) ) public pendingAmount;
     mapping(address => orderInfo[])  orders;
 
     struct userItem {
         uint id;
+        string category;
         string product;
         uint price;
         uint quantity;
         string imageHash;
-        address payable seller;
-    }
-
-
-    struct sellerData {
-        uint amount;
-        address payable seller;
-    }
-
-    struct productInfo {
-        string product;
-        string imageHash;
-        uint price;
-        uint quantity;
     }
 
     struct orderInfo{
@@ -40,7 +27,6 @@ contract OnSale {
         uint price;
         uint quantity;
         string imageHash;
-        address seller;
     }
 
     event itemAdded (
@@ -48,7 +34,7 @@ contract OnSale {
         string product,
         uint price,
         uint quantity,
-        address  seller
+        address owner
     );
 
     event productBought (
@@ -57,23 +43,26 @@ contract OnSale {
         uint amount
     );
 
-    function addItem(string memory _product, uint _price, uint _quantity,string memory _imageHash) public {
+    constructor(){
+        owner = payable(msg.sender);
+    }
+
+    function addItem(string memory _category, string memory _product, uint _price, uint _quantity,string memory _imageHash) public {
         itemCount++;
-        items[itemCount] = userItem(itemCount,_product,_price,_quantity,_imageHash,msg.sender);
-        products[msg.sender].push(productInfo(_product,_imageHash,_price,_quantity));
+        items[itemCount] = userItem(itemCount,_category,_product,_price,_quantity,_imageHash);
         emit itemAdded(itemCount, _product, _price, _quantity, msg.sender);
     }
 
-    function buy(uint _id) public payable {
+    function buy(uint _id, uint _quantity) public payable {
         userItem memory itemSelected = items[_id];
         
-        require(msg.value >= itemSelected.price *(1 ether), "insufficient balance");
+        require(msg.value >= ((itemSelected.price/1 ether)*_quantity), "insufficient balance");
         
-        pendingAmount[msg.sender][_id] = sellerData(msg.value,itemSelected.seller);
+        pendingAmount[msg.sender][_id] = msg.value; 
 
         emit productBought(itemSelected.id,msg.sender,msg.value);
         
-        items[_id].quantity-=1;
+        items[_id].quantity-=_quantity;
         if( items[_id].quantity == 0){
             delete items[_id];
         }
@@ -92,16 +81,12 @@ contract OnSale {
 
         if(count== orders[msg.sender].length){
             orders[msg.sender].push(
-              orderInfo(_id,itemSelected.product,itemSelected.price,1,itemSelected.imageHash,itemSelected.seller)
+              orderInfo(_id,itemSelected.product,itemSelected.price,_quantity,itemSelected.imageHash)
               );
         }else{
-            orders[msg.sender][index].quantity+=1;
+            orders[msg.sender][index].quantity+=_quantity;
         }
         
-    }
-
-    function getProducts() public view returns(productInfo [] memory) {
-        return products[msg.sender];
     }
 
     function getOrders() public view returns(orderInfo [] memory){
@@ -109,10 +94,8 @@ contract OnSale {
     }
 
     function paymentApproved(uint _id) public {
-        sellerData memory sellerdata = pendingAmount[msg.sender][_id];
-        uint amount = sellerdata.amount;
-        address payable seller = sellerdata.seller;
-        address(seller).transfer(amount);
+        uint amountPending = pendingAmount[msg.sender][_id];
+        owner.transfer(amountPending);
         delete pendingAmount[msg.sender][_id];
     }
 
