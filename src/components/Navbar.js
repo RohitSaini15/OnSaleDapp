@@ -143,7 +143,7 @@ class Navbar extends Component {
             )}</li>
             <li  style={{"margin": "10px"}}> <small aria-hidden="true" id="account">{this.props.account}</small></li>
             <li className="checkout">
-              <Link to="#">
+              <Link to="/user/cart">
                 <i className="fa fa-shopping-cart" aria-hidden="true"></i>
                 <span id="checkout_items" className="checkout_items">2</span>
               </Link>

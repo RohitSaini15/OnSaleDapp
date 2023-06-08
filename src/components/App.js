@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component} from "react";
 import Web3 from "web3";
 import OnSale from "../abis/OnSale.json";
 import Navbar from "./Navbar";
@@ -6,12 +6,14 @@ import Contacts from "./Contacts"
 import Home from "./Home";
 import Shop from "./Shop";
 import Orders from "./Orders";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import './App.css';
 import NFT_market from "./NFT_market";
 import Shop_women from "./Shop_women";
 import Shop_men from "./Shop_men";
 import Shop_accessories from "./Shop_accessories";
+import Cart from "./Cart";
+import Form from "./Form";
 
 class App extends Component {
   async componentWillMount() {
@@ -27,7 +29,6 @@ class App extends Component {
     const accounts = await web3.eth.getAccounts();
     this.setState({ account: accounts[0] });
     }
-
     await this.loadBlockchainData();
   }
   
@@ -46,6 +47,7 @@ class App extends Component {
     };
 
     this.buy = this.buy.bind(this);
+    this.addToCart = this.addToCart.bind(this)
     this.approve = this.approve.bind(this);
     this.setAccount = this.setAccount.bind(this);
   }
@@ -170,21 +172,48 @@ class App extends Component {
   }
 
  
-  buy(id, quantity, Amount) {
-    console.log("buy fn called ")
-    //this.setState({ loading: true });
-    console.log(id,quantity,Amount)
-    console.log(this.state.onSale)
-    console.log(this.state.account)
-    this.state.onSale.methods
-      .buy(id,quantity)
-      .send({ from: this.state.account, value: Amount, gas: 300000 })
-      .on("receipt", (receipt) => {
-        console.log(`item bought ${receipt}`);
+  async buy(id, quantity, Amount) {
 
-        this.loadBlockchainData();
-      
-      });
+    const API = "http://localhost:5000/user/checkDetails"
+    const query = `user_id=${this.state.account}`
+
+    const url = `${API}?${query}`
+
+    const res = await fetch(url)
+    const jsonData = await res.json()
+
+    // console.log("buyid")
+    // console.log(jsonData)
+    
+    if (jsonData.user){
+      console.log("buy fn called ")
+      //this.setState({ loading: true });
+      console.log(id,quantity,Amount)
+      console.log(this.state.onSale)
+      console.log(this.state.account)
+      this.state.onSale.methods
+        .buy(id,quantity)
+        .send({ from: this.state.account, value: Amount, gas: 300000 })
+        .on("receipt", (receipt) => {
+          console.log(`item bought ${receipt}`);
+  
+          this.loadBlockchainData();
+        
+        });
+    } else{
+      this.props.navigate("/form")
+    }
+  }
+
+  async addToCart(product_id,quantity,type){
+      const API = "http://localhost:5000/user/addToCart"
+
+      const body = `user_id=${this.state.account}&product_id=${product_id}&quantity=${quantity}&type=${type}`
+      const res = await fetch(API,{method:"POST",body: body,
+                                  "mode": "no-cors",headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded'
+                                }})
+      alert("items added in cart")
   }
 
   approve(id) {
@@ -198,8 +227,6 @@ class App extends Component {
         
       });
   }
-
-
 
   render() {
     return (
@@ -235,19 +262,19 @@ class App extends Component {
           <Route
             path="/shop/women"
             element={
-              <Shop_women items={this.state.items_women}  buy={this.buy} />
+              <Shop_women items={this.state.items_women}  buy={this.buy} addToCart={this.addToCart}/>
             }
           />
            <Route
             path="/shop/men"
             element={
-              <Shop_men items={this.state.items_men}  buy={this.buy} />
+              <Shop_men items={this.state.items_men}  buy={this.buy} addToCart={this.addToCart}/>
             }
           />
            <Route
             path="/shop/accessories"
             element={
-              <Shop_accessories items={this.state.items_accessories}  buy={this.buy} />
+              <Shop_accessories items={this.state.items_accessories}  buy={this.buy} addToCart={this.addToCart}/>
             }
           />
           <Route
@@ -262,12 +289,38 @@ class App extends Component {
               <NFT_market/>
             }
           />
+
+          <Route
+            path="/nftmarket"
+            element={
+              <NFT_market/>
+            }
+          />
+
+          <Route
+            path="/user/cart"
+            element={
+              <Cart items={this.state.items_accessories}/>
+            }
+          />
+
+          <Route
+            path="/form"
+            element={
+              <Form account = {this.state.account}></Form>
+            }
+          />
          
         </Routes>
         
       </div>
     );
   }
+}
+
+export function AppWithRouter(props){
+  const navigate = useNavigate()
+  return (<App navigate = {navigate}></App>)
 }
 
 export default App;

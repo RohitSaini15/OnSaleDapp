@@ -8,11 +8,26 @@ class Shop_accessories extends Component {
       super(props);
       this.state={
         text: [],
+        isLoading: false,
+        quantity_selected: {},
+        isBuyClicked: false
       }
-      this.update()
+      // this.update()
     }
     //note: while using arrow functions we dont have to bind the function in constructor to use it in
     //any other function within the className component
+
+    componentWillMount() {
+      console.log(this.props.items)
+
+      this.setState({
+        text: this.props.items.reduce((obj,item) => {
+          obj[item.id] = item.quantity
+          return obj
+        },{})
+      })
+      console.log(this.state.text)
+    }
     
     update = () => {
       console.log(this.props.items)
@@ -24,28 +39,47 @@ class Shop_accessories extends Component {
       })
     }
 
-    increment = (quantity,id) => {
-      if(this.state.text[id] < quantity){
-        const newText = [...this.state.text]
+    // increment = (quantity,id) => {
+    //   if(this.state.text[id] < quantity){
+    //     const newText = [...this.state.text]
 
-        newText[id]+=1
+    //     newText[id]+=1
 
-        this.setState({text: newText})
-      }
+    //     this.setState({text: newText})
+    //   }
       
-      return null;
+    //   return null;
+    // }
+
+    increment = (id) => {
+      console.log(this.state.quantity_selected)
+      if(!(id in this.state.quantity_selected) || this.state.quantity_selected[id] < this.state.text[id]){
+          this.setState((prevState) => {
+            prevState.quantity_selected[id] = (prevState.quantity_selected[id] + 1) || 1
+            return prevState
+          })
+      }
     }
 
-    decrement = (id) => {
-      if(this.state.text[id] > 1){
-        const newText = [...this.state.text]
+    // decrement = (id) => {
+    //   if(this.state.text[id] > 1){
+    //     const newText = [...this.state.text]
 
-        newText[id]-=1
+    //     newText[id]-=1
 
-        this.setState({text: newText})
-      }
+    //     this.setState({text: newText})
+    //   }
       
-      return null;
+    //   return null;
+    // }
+
+    decrement = (id) => {
+      if(id in this.state.quantity_selected && this.state.quantity_selected[id] >= 1){
+          this.setState((prevState) => {
+            prevState.quantity_selected[id] = prevState.quantity_selected[id] - 1
+            return prevState
+          })
+      }
     }
   
     render() {
@@ -74,10 +108,28 @@ class Shop_accessories extends Component {
                             this.props.buy(item.id.toString(),this.state.text[item.id], Amount);
                           }}
                         >Buy</div>
+              
+              <div className="red_button shop_now_button m-left" style={{ color: "white", marginTop: "2px"}}    
+              onClick={async () => {
+                              console.log("add to cart called")
+                              this.setState({isLoading: true})
+                              try{
+                                await this.props.addToCart(item.id.toString(),this.state.quantity_selected[item.id],"accesories")
+                                console.log("successfully added")
+                              } catch(err){
+                                console.log(`error occured in add To cart ${err}`)
+                              }
+
+                              this.setState({isLoading: false})
+                          }}
+                        >Add To Cart</div>
               <div className="quantity">
-              <button  className="decrement-btn" onClick={() => this.decrement(item.id)}>-</button>
+              {/* <button  className="decrement-btn" onClick={() => this.decrement(item.id)}>-</button>
               <span type="number"   className="quantity-input">{this.state.text[item.id]}</span>
-              <button className="increment-btn" onClick={() => this.increment(item.quantity,item.id)}>+</button>
+              <button className="increment-btn" onClick={() => this.increment(item.quantity,item.id)}>+</button> */}
+              <button  className="decrement-btn" onClick={() => this.decrement(item.id)}>-</button>
+              <span type="number"   className="quantity-input">{this.state.quantity_selected[item.id] || 0}</span>
+              <button className="increment-btn" onClick={() => this.increment(item.id)}>+</button>
               </div>
             </div>
           </div>)
