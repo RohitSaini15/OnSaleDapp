@@ -300,7 +300,7 @@ class App extends Component {
           <Route
             path="/user/cart"
             element={
-              <Cart items={this.state.items_accessories}/>
+              <Cart accessories={this.state.items_accessories} men={this.state.items_men} women={this.state.items_women} account={this.state.account}/>
             }
           />
 

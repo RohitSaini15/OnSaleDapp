@@ -35,7 +35,7 @@ app.post("/user/addToCart",async (req,res) => {
 
 app.post("/user/deleteFromCart",async (req,res) => {
     try{
-        await AddToCart.findOneAndDelete({user_id: req.body.user_id,product_id: req.body.product_id})
+        await AddToCart.findOneAndDelete({user_id: req.body.user_id,product_id: req.body.product_id,type: req.body.type})
         
         return res.json({"msg": "successfully deleted"})
     } catch(err){

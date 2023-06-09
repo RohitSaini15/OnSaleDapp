@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./Cart.css"
+import "./ProductSection.css"
 
-export default function Cart(){
+export default function Cart(props){
     const API = "http://localhost:5000/cart/items";
     const [data, setData] = useState([]);
 
@@ -11,6 +12,7 @@ export default function Cart(){
         xhrRequest.responseType = 'json'
         
         xhrRequest.onload = function(){
+			console.log(xhrRequest.response.items)
             setData(xhrRequest.response.items)
         }
 
@@ -30,48 +32,50 @@ export default function Cart(){
 				<th>Quantity</th>
 				<th>Subtotal</th>
 			</tr>
-			<tr>
-				<td>
-					<div class="cart-info">
-						<img src="images/buy-1.jpg" alt=""/>
-						<div>
-							<p>Red Printed T-shirt</p>
-							<small>Price: 0.002ETH</small>
-							<a href="">Remove</a>
-						</div>
-					</div>
-				</td>
-				<td><input type="number" value="1"/></td>
-				<td>$50.00</td>
-			</tr>
-			<tr>
-				<td>
-					<div class="cart-info">
-						<img src="images/buy-2.jpg" alt=""/>
-						<div>
-							<p>Red Printed T-shirt</p>
-							<small>Price: 0.0001ETH</small>
-							<a href="">Remove</a>
-						</div>
-					</div>
-				</td>
-				<td><input type="number" value="1"/></td>
-				<td>$50.00</td>
-			</tr>
-			<tr>
-				<td>
-					<div class="cart-info">
-						<img src="images/buy-3.jpg" alt=""/>
-						<div>
-							<p>Red Printed T-shirt</p>
-							<small>Price: 0.001ETH</small>
-							<a href="">Remove</a>
-						</div>
-					</div>
-				</td>
-				<td><input type="number" value="1"/></td>
-				<td>$50.00</td>
-			</tr>
+
+			{
+				data.map((item) => {
+					let item_list = []
+					if(item.type == "men") {item_list = props.men}
+					else if(item.type == "women") {item_list = props.women}
+					else {item_list = props.accessories}
+
+					let prod_item = {}
+
+					for(let record in item_list){
+						if(parseInt(item_list[record].id) == parseInt(item.product_id)){
+							prod_item = item_list[record]
+							break
+						}
+					}
+
+					return (
+						<tr>
+						<td>
+							<div class="cart-info">
+								<img src="images/buy-1.jpg" alt=""/>
+								<div>
+									<p>{prod_item.product}</p>
+									<small>Price: {prod_item.price}</small>
+									<a href="" onClick = {async () => {
+										const API = "http://localhost:5000/user/deleteFromCart"
+
+										const body = `user_id=${props.account}&product_id=${item.product_id}&type=${item.type}`
+										const res = await fetch(API,{method:"POST",body: body,
+																	"mode": "no-cors",headers: {
+																	  'Content-Type': 'application/x-www-form-urlencoded'
+																  }})
+										alert("items remove from cart")
+									}}>Remove</a>
+								</div>
+							</div>
+						</td>
+						<td><p>{item.quantity}</p></td>
+						<td>{item.quantity*parseInt(prod_item.price)}</td>
+					</tr>
+					)
+				})
+			}
 		</tbody></table>
 	</div>
     )
